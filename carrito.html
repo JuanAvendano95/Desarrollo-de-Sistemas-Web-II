@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Carrito | Tienda Sara</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">🛒 Tienda Sara</a>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card p-4">
+                    <h3>Carrito de compras</h3>
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-items">
+                            </tbody>
+                    </table>
+                </div>
+                <a href="galeria.html" class="btn btn-outline-secondary mt-3">← Seguir comprando</a>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card p-4">
+                    <h5>Resumen del pedido</h5>
+                    <hr>
+                    <div class="d-flex justify-content-between"><span>Subtotal</span> <span id="summary-subtotal">$0</span></div>
+                    <div class="d-flex justify-content-between"><span>Impuestos (16%)</span> <span id="summary-tax">$0</span></div>
+                    
+                    <div class="my-3">
+                        <label>Envío</label>
+                        <select id="shipping-method" class="form-select" onchange="calculateTotal()">
+                            <option value="0">Estándar (Gratis)</option>
+                            <option value="150">Express ($150)</option>
+                            <option value="300">Internacional ($300)</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" placeholder="Cupón de descuento">
+                        <button class="btn btn-outline-primary" onclick="alert('Cupón no válido')">Aplicar</button>
+                    </div>
+
+                    <hr>
+                    <div class="d-flex justify-content-between"><strong>Total</strong> <strong id="summary-total">$0</strong></div>
+                    <button class="btn btn-success w-100 mt-3" onclick="alert('¡Gracias por tu compra!')">Proceder al pago</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para renderizar el carrito
+        function renderCart() {
+            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            const tbody = document.getElementById('cart-items');
+            
+            if(carrito.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5' class='text-center'>El carrito está vacío</td></tr>";
+            } else {
+                tbody.innerHTML = carrito.map((item, index) => `
+                    <tr>
+                        <td><img src="${item.img}" style="width:50px"> ${item.name}</td>
+                        <td>$${item.price}</td>
+                        <td><input type="number" class="form-control" style="width:70px" value="${item.qty || 1}" onchange="updateQty(${index}, this.value)"></td>
+                        <td>$${(item.price * (item.qty || 1)).toFixed(2)}</td>
+                        <td><button class="btn btn-danger btn-sm" onclick="removeItem(${index})">X</button></td>
+                    </tr>
+                `).join('');
+            }
+            calculateTotal();
+        }
+
+        function updateQty(index, val) {
+            let carrito = JSON.parse(localStorage.getItem('carrito'));
+            carrito[index].qty = parseInt(val);
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            renderCart();
+        }
+
+        function removeItem(index) {
+            let carrito = JSON.parse(localStorage.getItem('carrito'));
+            carrito.splice(index, 1);
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            renderCart();
+        }
+
+        function calculateTotal() {
+            let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+            let subtotal = carrito.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0);
+            let tax = subtotal * 0.16;
+            let shipping = parseFloat(document.getElementById('shipping-method').value);
+            let total = subtotal + tax + shipping;
+
+            document.getElementById('summary-subtotal').innerText = "$" + subtotal.toFixed(2);
+            document.getElementById('summary-tax').innerText = "$" + tax.toFixed(2);
+            document.getElementById('summary-total').innerText = "$" + total.toFixed(2);
+        }
+
+        // Cargar al iniciar
+        renderCart();
+    </script>
+    <script src="js/bootstrap.bundle.js"></script>
+</body>
+</html>
